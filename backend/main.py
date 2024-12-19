@@ -94,39 +94,3 @@ def get_element_by_symbol(symbol: str):
         
     raise HTTPException(status_code=404, detail=f"Element with symbol '{symbol}' not found")
 
-@app.get("/quiz")
-async def get_random_quiz():
-    """
-   Generates a random quiz with 10 element symbols and their atomic numbers.
-    """
-    query = """
-        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX owl: <http://www.w3.org/2002/07/owl#>
-        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-        PREFIX pt: <http://www.example.org/periodic_table.owl#>
-
-        SELECT ?element ?symbol ?atomicNumber
-        WHERE {
-        ?element rdf:type pt:Element .
-        ?element pt:symbol ?symbol .
-        OPTIONAL { ?element pt:atomicNumber ?atomicNumber . }
-        }
-        """
-
-    results = g.query(query)
-    elements = [(str(row.symbol), int(row.atomicNumber)) for row in results]
-
-    quiz_questions = []
-    for symbol, atomic_number in random.sample(elements, 10):
-        correct_answer = atomic_number
-        incorrect_answers = [atomic_number - 2, atomic_number + 2]
-        random.shuffle(incorrect_answers)
-        options = [correct_answer, *incorrect_answers]
-        random.shuffle(options)
-        quiz_questions.append({
-            "symbol": symbol,
-            "options": options
-        })
-
-    return {"questions": quiz_questions}
